@@ -8,4 +8,7 @@ class User < ApplicationRecord
             length: { minimum: 6 },
             if: -> { new_record? || !password.nil? }
   has_and_belongs_to_many :roles
+
+  has_many :store_users, dependent: :destroy
+  has_many :stores, through: :store_users
 end
