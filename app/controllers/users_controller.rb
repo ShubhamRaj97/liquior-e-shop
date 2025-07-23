@@ -6,8 +6,9 @@ class UsersController < ApplicationController
   # GET /users
   def index
     @users = User.all
-    render json: @users, status: :ok
+    render json: UserSerializer.new(@users).serializable_hash, status: :ok
   end
+
 
   # GET /users/{username}
   def show
@@ -15,15 +16,29 @@ class UsersController < ApplicationController
   end
 
   # POST /users
+
   def create
-    @user = User.new(user_params)
-    if @user.save
-      render json: @user, status: :created
+    role_ids = user_params[:role_ids]
+
+    if role_ids.present?
+      roles = Role.where(id: role_ids)
+      if roles.size != role_ids.uniq.size
+        return render json: { errors: ['One or more role_ids are invalid'] }, status: :unprocessable_entity
+      end
     else
-      render json: { errors: @user.errors.full_messages },
-             status: :unprocessable_entity
+      return render json: { errors: ['role_ids are required'] }, status: :unprocessable_entity
+    end
+
+    @user = User.new(user_params.except(:role_ids))
+
+    if @user.save
+      @user.roles << roles
+      render json: UserSerializer.new(@user)
+    else
+      render json: { errors: @user.errors.full_messages }, status: :unprocessable_entity
     end
   end
+
 
   # PUT /users/{username}
   def update
@@ -48,7 +63,7 @@ class UsersController < ApplicationController
 
   def user_params
     params.permit(
-      :avatar, :name, :username, :email, :password, :password_confirmation
+      :avatar, :name, :username, :email, :password, :password_confirmation, role_ids: []
     )
   end
 end

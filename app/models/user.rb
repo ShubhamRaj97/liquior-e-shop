@@ -7,4 +7,5 @@ class User < ApplicationRecord
   validates :password,
             length: { minimum: 6 },
             if: -> { new_record? || !password.nil? }
+  has_and_belongs_to_many :roles
 end
