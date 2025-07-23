@@ -47,3 +47,5 @@ db/schema.rb
 
 .vscode
 coverage
+Gemfile.lock
+Gemfile
